@@ -34,10 +34,11 @@ def generate_annotations(directory, output_file, batch_size=10):
         'prompt': "What is in this image?"
     }
 
-    annotations = {}
+    annotations = {}    
     if os.path.exists(output_file):
-        with open(output_file, 'r') as f:
-            annotations.update(json.load(f))
+        return
+        # with open(output_file, 'r') as f:
+        #     annotations.update(json.load(f))
 
     image_filenames = [f for f in os.listdir(directory) if f.endswith(".jpg")]
 
@@ -58,12 +59,20 @@ def generate_annotations(directory, output_file, batch_size=10):
     # Final save for all remaining data
     with open(output_file, 'w') as f:
         json.dump(annotations, f, indent=4)
-    print("All images processed and data saved.")
+    print(f"All images processed in {directory} and data saved in {output_file}.")
+
+
+def process_main_directory(main_directory, batch_size=10):
+    subdirectories = [os.path.join(main_directory, d) for d in os.listdir(main_directory) if os.path.isdir(os.path.join(main_directory, d))]
+
+    for subdirectory in subdirectories:
+        output_file = os.path.join(subdirectory, "annotations.json")
+        print(f"Processing subdirectory: {subdirectory}")
+        generate_annotations(subdirectory, output_file, batch_size)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Process images and generate annotations.")
-    parser.add_argument("images_directory", type=str, help="The directory where images are stored")
-    parser.add_argument("output_json_file", type=str, help="The file where annotations will be saved")
+    parser = argparse.ArgumentParser(description="Process images in subdirectories and generate annotations.")
+    parser.add_argument("main_directory", type=str, help="The main directory containing subdirectories with images")
     args = parser.parse_args()
 
-    generate_annotations(args.images_directory, args.output_json_file, batch_size=10)
+    process_main_directory(args.main_directory)

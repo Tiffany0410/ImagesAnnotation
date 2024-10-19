@@ -17,13 +17,14 @@ from llava.mm_utils import (
     get_model_name_from_path,
 )
 
-from PIL import Image
+from PIL import Image, ImageFile
 
 import requests
 from PIL import Image
 from io import BytesIO
 import re
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 def image_parser(args):
     out = args.image_file.split(args.sep)
@@ -35,7 +36,11 @@ def load_image(image_file):
         response = requests.get(image_file)
         image = Image.open(BytesIO(response.content)).convert("RGB")
     else:
-        image = Image.open(image_file).convert("RGB")
+        try:
+            image = Image.open(image_file).convert("RGB")
+        except OSError as e:
+            print(f"Skipping file {image_file}: {e}")
+            return None  # Skip the file or handle it as needed
     return image
 
 
